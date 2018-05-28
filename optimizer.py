@@ -4,7 +4,7 @@ from collections import OrderedDict
 # speed test - use "python optimizer.py" to run
 if __name__ == "__main__":
     import timeit
-    test_size = 100 # set to 100 to check time for speed race
+    test_size = 20 # set to 100 to check time for speed race
     t1 = timeit.repeat(stmt="optimizer.max_food(b)", setup="import gc, building, optimizer; b = building.random_building({0}, True); gc.collect()".format(test_size), repeat=3, number=1)
     t2 = timeit.repeat(stmt="optimizer.max_supplies(b)", setup="import gc, building, optimizer; b = building.random_building({0}, False); gc.collect()".format(test_size), repeat=3, number=1)
     # some calculation that takes ~1 sec on my machine
@@ -16,13 +16,6 @@ def max_food(building):
     start = building.size
     length = (building.size * 2) + 1
     matrix = [[building.rooms[y][x].food for x in range(length)] for y in range(length)]
-    # matrix = [[0 for x in range(length)] for x in range(length)]
-
-    # Initialize started points for the four quadrants
-    # matrix[start - 1][start] = building.rooms[start - 1][start].food
-    # matrix[start + 1][start] = building.rooms[start + 1][start].food
-    # matrix[start][start - 1] = building.rooms[start][start - 1].food
-    # matrix[start][start + 1] = building.rooms[start][start + 1].food
 
     matrix[start][start] = 0
 
@@ -79,26 +72,11 @@ def max_food(building):
     while i < length:
         j = start - 1
         while j >= 0:
-            matrix[i][j] = max(matrix[i - 1][j], matrix[i][j + 1]) + building.rooms[i][j].food
+            matrix[i][j] = max(matrix[i - 1][j], matrix[i][j + 1]) + matrix[i][j]
             j = j - 1
         i = i + 1
 
-    # for i in range(0, length):
-    #     for j in range(0, length):
-    #         print(building.rooms[i][j], end="\t")
-    #     print()
-    # print("\n\n\n")
-
-    #print(max(matrix[0][0], matrix[0][length - 1], matrix[length - 1][0], matrix[length - 1][length - 1]))
-
     return max(matrix[0][0], matrix[0][length - 1], matrix[length - 1][0], matrix[length - 1][length - 1])
-
-def addToDict(currentDict, previousDict):
-    for key in previousDict:
-        if key in currentDict:
-            currentDict[key].append(previousDict[key])
-        else:
-            currentDict[key] = [previousDict[key]]
 
 
 def max_supplies(building):
@@ -140,6 +118,10 @@ def max_supplies(building):
                                     [building.rooms[start][j + 1].water + list(matrix[start][j].values())[0][0]]}
         j = j + 1
 
+
+    # The following code blocks iterate through each corner of the grid adding food and water together and appending
+    # the newly calculated values to the current grid cell in the matrix
+
     # Builds upper left matrix
     i = start - 1
     while i >= 0:
@@ -153,7 +135,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i + 1][j][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -168,7 +150,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i][j + 1][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -193,7 +175,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i + 1][j][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -208,7 +190,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i][j - 1][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -232,7 +214,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i - 1][j][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -247,7 +229,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i][j - 1][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -271,7 +253,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i - 1][j][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -286,7 +268,7 @@ def max_supplies(building):
                 keySum = roomKey + matrixKey
                 listOfValues = matrix[i][j + 1][matrixKey]
                 if len(listOfValues) > 1:
-                    listOfValues.sort()
+                    listOfValues.sort(reverse=True)
                 valueSum = roomValue + listOfValues[0]
 
                 if keySum in matrix[i][j]:
@@ -297,11 +279,37 @@ def max_supplies(building):
             j = j - 1
         i = i + 1
 
-    # for i in range(0, length-1):
-    #     for j in range(0, length-1):
-    #         print(matrix[i][j], end="\t")
-    #     print()
-    # print("\n\n")
+    # Combines the four corners of the matrix into one dictionary
+    tempList = [matrix[0][0], matrix[0][length - 1], matrix[length - 1][0], matrix[length - 1][length - 1]]
+    i = 0
+    finalDict = {}
+    while i < len(tempList):
+        for key in tempList[i]:
+            listOfValues = tempList[i][key]
+            if len(listOfValues) > 1:
+                listOfValues.sort()
+            if key in finalDict:
+                finalDict[key].append(listOfValues[0])
+            else:
+                finalDict[key] = [listOfValues[0]]
+        i = i + 1
 
-    list1 = [matrix[0][0], matrix[0][length - 1], matrix[length - 1][0], matrix[length - 1][length - 1]]
-    return list1
+    # Iterates over newly formed dictionary taking the highest value for each key
+    # creating a pruned list of potential food water
+    finalList = []
+    for key in finalDict:
+        if len(finalDict[key]) > 1:
+            finalDict[key].sort(reverse=True)
+        finalList.append((key, finalDict[key][0]))
+
+    # Finds the pair with the most equal amounts of each supply
+    finalList.sort(reverse=True)
+    difference = 1 << 10
+    minPair = finalList[0]
+    for pair in finalList:
+        newDifference = abs(pair[0] - pair[1])
+        if newDifference < difference:
+            difference = newDifference
+            minPair = pair
+
+    return minPair
